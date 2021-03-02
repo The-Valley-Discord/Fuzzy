@@ -32,12 +32,13 @@ button somewhere on the top right on the repository main site.
 
 ### 3. Initial Setup
 
-1. Switch over into the directory you cloned Fuzzy into and spin up a development shell `poetry shell`. 
-   This might take a while, so grab yourself a cup of tea.
-2. Open the file `fuzzy.cfg.example` with your text editor and update at the very least the value of
+1. Switch over into the directory you cloned Fuzzy into and spin up a development shell `poetry shell`.
+2. Run `poetry install` to install the depenancies for this project. This might take a while, 
+   so grab yourself a cup of tea.
+3. Open the file `fuzzy.cfg.example` with your text editor and update at the very least the value of
 `discord.token` with the bot token you got from Discord. Without this, your bot won't be able to log
 in. You might also want to change other values. Save the file as `fuzzy.cfg` in the same folder.
-3. In your development shell, run `python -m fuzzy` to start the bot for the first time. It will
+4. In your development shell, run `python -m fuzzy` to start the bot for the first time. It will
 automatically create the needed database.
 
 ### 4. Development Workflow

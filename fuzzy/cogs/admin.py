@@ -120,7 +120,7 @@ class Admin(Fuzzy.Cog):
         )
         if category_errors or channel_errors:
             await ctx.reply(
-                f"Failed to update the following due to mission permissions."
+                f"Failed to update the following due to missing permissions."
                 + (
                     (
                         f"\n**Categories:** "
@@ -175,7 +175,7 @@ class Admin(Fuzzy.Cog):
             )
         else:
             await ctx.reply(
-                f"Failed to update the following due to mission permissions."
+                f"Failed to update the following due to missing permissions."
                 + (
                     (
                         f"\n**Categories:** "
