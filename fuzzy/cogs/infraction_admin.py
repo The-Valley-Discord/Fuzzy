@@ -356,7 +356,7 @@ class InfractionAdmin(Fuzzy.Cog):
         return discord.Embed(
             title="Ban",
             description=f"**Date:** {infraction.infraction_on.strftime('%Y-%m-%d')}\n"
-            f"**User:** {infraction.user.name}\n"
+            f"**User:** {infraction.user.name} ({infraction.user.id})\n"
             f"**Reason:** {infraction.reason}",
         )
 
@@ -366,6 +366,6 @@ class InfractionAdmin(Fuzzy.Cog):
         return discord.Embed(
             title="Unban",
             description=f"**Date:** {infraction.pardon.pardon_on.strftime('%Y-%m-%d')}\n"
-            f"**User:** {infraction.user.name}\n"
+            f"**User:** {infraction.user.name} ({infraction.user.id})\n"
             f"**Reason:** {infraction.pardon.reason}",
         )

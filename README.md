@@ -19,3 +19,6 @@ GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Special thanks to [Cassidy Dingenskirchen](https://github.com/deingithub) for their contributions to this project 
+including the design of the discord.py bot customizations and the help commands setup.
