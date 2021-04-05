@@ -87,8 +87,7 @@ class Infractions(IInfractions):
         infraction = None
         try:
             infraction = self.conn.execute(
-                "SELECT * FROM infractions WHERE oid=:id",
-                {"id": infraction_id},
+                "SELECT * FROM infractions WHERE oid=:id", {"id": infraction_id},
             ).fetchone()
         except sqlite3.DatabaseError:
             pass
@@ -195,7 +194,11 @@ class Infractions(IInfractions):
             infraction = self.conn.execute(
                 "SELECT * FROM infractions WHERE user_id=:user_id "
                 "AND guild_id=:guild_id AND DATETIME(infraction_on) > :infraction_on",
-                {"user_id": user_id, "guild_id": guild_id, "infraction_on": infraction_on},
+                {
+                    "user_id": user_id,
+                    "guild_id": guild_id,
+                    "infraction_on": infraction_on,
+                },
             ).fetchone()
         except sqlite3.DatabaseError:
             pass

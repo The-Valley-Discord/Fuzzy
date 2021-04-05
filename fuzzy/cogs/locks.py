@@ -93,9 +93,7 @@ class Locks(Fuzzy.Cog):
 
     @commands.command()
     async def unlock(
-        self,
-        ctx: Fuzzy.Context,
-        channel: Optional[discord.TextChannel],
+        self, ctx: Fuzzy.Context, channel: Optional[discord.TextChannel],
     ):
         """Prevents users from being able to speak in a channel.
         channel` is the channel to lock. If left empty the current channel will be used."""

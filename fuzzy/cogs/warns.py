@@ -11,11 +11,7 @@ class Warns(Fuzzy.Cog):
     @commands.command()
     @commands.has_permissions(manage_messages=True)
     async def warn(
-        self,
-        ctx: Fuzzy.Context,
-        who: discord.User,
-        *,
-        reason: Optional[str] = "",
+        self, ctx: Fuzzy.Context, who: discord.User, *, reason: Optional[str] = "",
     ):
         """Issue a warning to a user.
         `who` the person to be warned. This can be an ID, a user mention, or
@@ -35,8 +31,7 @@ class Warns(Fuzzy.Cog):
                         + (f'for "{reason}"' if reason else ""),
                     )
                 except discord.Forbidden or discord.HTTPException:
-                    await ctx.reply(
-                        f"Could not send direct message to {who.mention}")
+                    await ctx.reply(f"Could not send direct message to {who.mention}")
         else:
             await ctx.reply("You cant warn yourself.")
 

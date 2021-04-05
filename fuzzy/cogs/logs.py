@@ -24,7 +24,9 @@ class Logs(Fuzzy.Cog):
             who.id, ctx.guild.id
         )
         if not all_infraction:
-            await ctx.reply(f"{who.name}#{who.discriminator} does not have any infractions.")
+            await ctx.reply(
+                f"{who.name}#{who.discriminator} does not have any infractions."
+            )
             return
         fields = Logs.create_infraction_text(self, all_infraction)
         msgs = Logs.compile_text(fields)
@@ -136,7 +138,9 @@ class Logs(Fuzzy.Cog):
                 f"Moderator: {moderator.mention}\n"
             )
             if infraction.pardon:
-                pardoner: discord.User = self.bot.get_user(infraction.pardon.moderator.id)
+                pardoner: discord.User = self.bot.get_user(
+                    infraction.pardon.moderator.id
+                )
                 msg = (
                     f"~~{msg}~~"
                     f"**Pardoned by: {pardoner.mention} on "

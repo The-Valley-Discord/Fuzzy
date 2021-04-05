@@ -76,11 +76,7 @@ class Infraction(object):
 
     @classmethod
     def create(
-        cls,
-        ctx,
-        who: discord.User,
-        reason: str,
-        infraction_type: InfractionType,
+        cls, ctx, who: discord.User, reason: str, infraction_type: InfractionType,
     ):
         """Creates a new Infraction ready to be stored in DB.
         This will not have id pardon or published_ban attributes. Use normal constructor if those are required"""

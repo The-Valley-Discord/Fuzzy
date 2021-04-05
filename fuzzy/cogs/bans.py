@@ -17,19 +17,26 @@ class Bans(Fuzzy.Cog):
         infraction log."""
         await asyncio.sleep(0.5)
 
-        infraction = self.bot.db.infractions.find_recent_ban_by_id_time_limited(user.id, guild.id)
+        infraction = self.bot.db.infractions.find_recent_ban_by_id_time_limited(
+            user.id, guild.id
+        )
         if not infraction:
             try:
-                async for entry in guild.audit_logs(limit=10,
-                                                    oldest_first=False,
-                                                    after=(datetime.utcnow() - timedelta(minutes=1)),
-                                                    action=discord.AuditLogAction.ban):
+                async for entry in guild.audit_logs(
+                    limit=10,
+                    oldest_first=False,
+                    after=(datetime.utcnow() - timedelta(minutes=1)),
+                    action=discord.AuditLogAction.ban,
+                ):
                     if entry.target.id == user.id:
 
                         # noinspection PyTypeChecker
                         mod = DBUser(0, "Unknown#????")
                         if not entry.user.bot:
-                            mod = DBUser(entry.user.id, f"{entry.user.name}#{entry.user.discriminator}")
+                            mod = DBUser(
+                                entry.user.id,
+                                f"{entry.user.name}#{entry.user.discriminator}",
+                            )
                         # noinspection PyTypeChecker
                         infraction = self.bot.db.infractions.save(
                             Infraction(
@@ -49,19 +56,19 @@ class Bans(Fuzzy.Cog):
             except discord.Forbidden:
                 # noinspection PyTypeChecker
                 infraction = self.bot.db.infractions.save(
-                            Infraction(
-                                None,
-                                DBUser(user.id, f"{user.name}#{user.discriminator}"),
-                                DBUser(0, "Unknown#????"),
-                                self.bot.db.guilds.find_by_id(guild.id),
-                                None,
-                                datetime.utcnow(),
-                                InfractionType.BAN,
-                                None,
-                                None,
-                                None,
-                            )
-                        )
+                    Infraction(
+                        None,
+                        DBUser(user.id, f"{user.name}#{user.discriminator}"),
+                        DBUser(0, "Unknown#????"),
+                        self.bot.db.guilds.find_by_id(guild.id),
+                        None,
+                        datetime.utcnow(),
+                        InfractionType.BAN,
+                        None,
+                        None,
+                        None,
+                    )
+                )
 
         msg = (
             f"**Banned:** {infraction.user.name} (ID {infraction.user.id})\n"
@@ -112,9 +119,7 @@ class Bans(Fuzzy.Cog):
         insufficient_permissions = []
         if await self.check_if_can_ban(who):
             if who.id != ctx.author.id:
-                infraction = Infraction.create(
-                    ctx, who, reason, InfractionType.BAN
-                )
+                infraction = Infraction.create(ctx, who, reason, InfractionType.BAN)
                 infraction = ctx.db.infractions.save(infraction)
                 if infraction:
                     try:
@@ -138,7 +143,8 @@ class Bans(Fuzzy.Cog):
         if infraction:
             await ctx.reply(
                 title="Banned",
-                msg=(f"**Reason:** {reason}\n" if reason else "") + f"{infraction.user.name}: Ban ID {infraction.id}",
+                msg=(f"**Reason:** {reason}\n" if reason else "")
+                + f"{infraction.user.name}: Ban ID {infraction.id}",
                 color=ctx.Color.BAD,
             )
         if insufficient_permissions:
@@ -161,9 +167,13 @@ class Bans(Fuzzy.Cog):
             except discord.NotFound or discord.HTTPException:
                 errors.append(user)
             else:
-                infraction = ctx.db.infractions.find_recent_ban_by_id(user.id, ctx.guild.id)
+                infraction = ctx.db.infractions.find_recent_ban_by_id(
+                    user.id, ctx.guild.id
+                )
                 if infraction:
-                    unbanned_users.append(f"{infraction.user.name}: Ban ID {infraction.id}")
+                    unbanned_users.append(
+                        f"{infraction.user.name}: Ban ID {infraction.id}"
+                    )
                     try:
                         await self.bot.direct_message(
                             user,
@@ -181,9 +191,7 @@ class Bans(Fuzzy.Cog):
         if unbanned_users:
             unban_string = "\n".join(unbanned_users)
             await ctx.reply(
-                title="Unbanned",
-                msg=f"{unban_string}",
-                color=ctx.Color.GOOD,
+                title="Unbanned", msg=f"{unban_string}", color=ctx.Color.GOOD,
             )
 
     async def check_if_can_ban(

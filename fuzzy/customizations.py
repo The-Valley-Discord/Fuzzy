@@ -157,10 +157,7 @@ class Fuzzy(commands.Bot):
         return random.choice(
             [
                 Activity(type=ActivityType.watching, name="and eating donuts."),
-                Activity(
-                    type=ActivityType.listening,
-                    name="to those with power.",
-                ),
+                Activity(type=ActivityType.listening, name="to those with power.",),
             ]
         )
 
