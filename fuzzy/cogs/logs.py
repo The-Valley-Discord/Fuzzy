@@ -24,9 +24,9 @@ class Logs(Fuzzy.Cog):
             who.id, ctx.guild.id
         )
         if not all_infraction:
-            await ctx.reply("User does not have any infractions.")
+            await ctx.reply(f"{who.name}#{who.discriminator} does not have any infractions.")
             return
-        fields = Logs.create_infraction_text(all_infraction)
+        fields = Logs.create_infraction_text(self, all_infraction)
         msgs = Logs.compile_text(fields)
         for msg in msgs:
             embed = discord.Embed(
@@ -48,9 +48,9 @@ class Logs(Fuzzy.Cog):
             who.id, ctx.guild.id
         )
         if not all_infraction:
-            await ctx.reply("User does not have any warns.")
+            await ctx.reply(f"{who.name}#{who.discriminator} does not have any warns.")
             return
-        fields = Logs.create_infraction_text(all_infraction)
+        fields = Logs.create_infraction_text(self, all_infraction)
         msgs = Logs.compile_text(fields)
         for msg in msgs:
             embed = discord.Embed(
@@ -72,9 +72,9 @@ class Logs(Fuzzy.Cog):
             who.id, ctx.guild.id
         )
         if not all_infraction:
-            await ctx.reply("User does not have any mutes.")
+            await ctx.reply(f"{who.name}#{who.discriminator} does not have any mutes.")
             return
-        fields = Logs.create_infraction_text(all_infraction)
+        fields = Logs.create_infraction_text(self, all_infraction)
         msgs = Logs.compile_text(fields)
         for msg in msgs:
             embed = discord.Embed(
@@ -96,9 +96,9 @@ class Logs(Fuzzy.Cog):
             who.id, ctx.guild.id
         )
         if not all_infraction:
-            await ctx.reply("User does not have any bans.")
+            await ctx.reply(f"{who.name}#{who.discriminator} does not have any bans.")
             return
-        fields = Logs.create_infraction_text(all_infraction)
+        fields = Logs.create_infraction_text(self, all_infraction)
         msgs = Logs.compile_text(fields)
         for msg in msgs:
             embed = discord.Embed(
@@ -124,23 +124,26 @@ class Logs(Fuzzy.Cog):
             f"Warns: {mod_actions['warns']}",
         )
 
-    @staticmethod
-    def create_infraction_text(infractions: List[Infraction]) -> List[str]:
+    def create_infraction_text(self, infractions: List[Infraction]) -> List[str]:
         """creates a list of formatted messages of each infraction given."""
         fields = []
         for infraction in infractions:
+            moderator: discord.User = self.bot.get_user(infraction.moderator.id)
             msg = (
                 f"**{infraction.id} : {infraction.infraction_type.value}** : "
                 f"{infraction.infraction_on.strftime('%b %d, %y at %I:%m %p')}\n"
                 f"Reason: {infraction.reason}\n"
-                f"Moderator: {infraction.moderator.name}\n"
+                f"Moderator: {moderator.mention}\n"
             )
             if infraction.pardon:
+                pardoner: discord.User = self.bot.get_user(infraction.pardon.moderator.id)
                 msg = (
                     f"~~{msg}~~"
-                    f"**Pardoned by: {infraction.pardon.moderator.name} on "
+                    f"**Pardoned by: {pardoner.mention} on "
                     f"{infraction.pardon.pardon_on.strftime('%b %d, %y at %I:%m %p')}**\n"
                 )
+                if infraction.pardon.reason:
+                    msg += f"**Reason: {infraction.pardon.reason}**\n"
             fields.append(msg)
         return fields
 

@@ -33,7 +33,7 @@ button somewhere on the top right on the repository main site.
 ### 3. Initial Setup
 
 1. Switch over into the directory you cloned Fuzzy into and spin up a development shell `poetry shell`.
-2. Run `poetry install` to install the depenancies for this project. This might take a while, 
+2. Run `poetry install` to install the dependencies for this project. This might take a while, 
    so grab yourself a cup of tea.
 3. Open the file `fuzzy.cfg.example` with your text editor and update at the very least the value of
 `discord.token` with the bot token you got from Discord. Without this, your bot won't be able to log

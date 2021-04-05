@@ -19,31 +19,50 @@ class Bans(Fuzzy.Cog):
 
         infraction = self.bot.db.infractions.find_recent_ban_by_id_time_limited(user.id, guild.id)
         if not infraction:
-            async for entry in guild.audit_logs(limit=10,
-                                                oldest_first=False,
-                                                after=(datetime.utcnow() - timedelta(minutes=1)),
-                                                action=discord.AuditLogAction.ban):
-                if entry.target.id == user.id:
+            try:
+                async for entry in guild.audit_logs(limit=10,
+                                                    oldest_first=False,
+                                                    after=(datetime.utcnow() - timedelta(minutes=1)),
+                                                    action=discord.AuditLogAction.ban):
+                    if entry.target.id == user.id:
 
-                    # noinspection PyTypeChecker
-                    mod = DBUser(0, "Unknown#????")
-                    if not entry.user.bot:
-                        mod = DBUser(entry.user.id, f"{entry.user.name}#{entry.user.discriminator}")
-                    infraction = self.bot.db.infractions.save(
-                        Infraction(
-                            None,
-                            DBUser(user.id, f"{user.name}#{user.discriminator}"),
-                            mod,
-                            self.bot.db.guilds.find_by_id(guild.id),
-                            f"{entry.reason}",
-                            datetime.utcnow(),
-                            InfractionType.BAN,
-                            None,
-                            None,
-                            None,
+                        # noinspection PyTypeChecker
+                        mod = DBUser(0, "Unknown#????")
+                        if not entry.user.bot:
+                            mod = DBUser(entry.user.id, f"{entry.user.name}#{entry.user.discriminator}")
+                        # noinspection PyTypeChecker
+                        infraction = self.bot.db.infractions.save(
+                            Infraction(
+                                None,
+                                DBUser(user.id, f"{user.name}#{user.discriminator}"),
+                                mod,
+                                self.bot.db.guilds.find_by_id(guild.id),
+                                f"{entry.reason}",
+                                datetime.utcnow(),
+                                InfractionType.BAN,
+                                None,
+                                None,
+                                None,
+                            )
                         )
-                    )
-                    break
+                        break
+            except discord.Forbidden:
+                # noinspection PyTypeChecker
+                infraction = self.bot.db.infractions.save(
+                            Infraction(
+                                None,
+                                DBUser(user.id, f"{user.name}#{user.discriminator}"),
+                                DBUser(0, "Unknown#????"),
+                                self.bot.db.guilds.find_by_id(guild.id),
+                                None,
+                                datetime.utcnow(),
+                                InfractionType.BAN,
+                                None,
+                                None,
+                                None,
+                            )
+                        )
+
         msg = (
             f"**Banned:** {infraction.user.name} (ID {infraction.user.id})\n"
             f"**Mod:** <@{infraction.moderator.id}>\n"
