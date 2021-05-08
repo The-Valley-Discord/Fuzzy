@@ -159,7 +159,7 @@ class InfractionAdmin(Fuzzy.Cog):
 
     @commands.group()
     @commands.has_guild_permissions(manage_messages=True)
-    async def publish(self, cts: Fuzzy.Context):
+    async def publish(self, ctx: Fuzzy.Context):
         """Publishes a ban or unban to the public ban log channel."""
 
     @commands.command(parent=publish)

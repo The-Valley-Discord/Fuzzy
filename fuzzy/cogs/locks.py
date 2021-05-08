@@ -28,9 +28,9 @@ class Locks(Fuzzy.Cog):
                 channel = guild.get_channel(lock.channel_id)
                 everyone_role = guild.get_role(lock.guild.id)
             if channel and everyone_role:
-                await channel.set_permissions(
-                    everyone_role, send_messages=lock.previous_value
-                )
+                overwrite = channel.overwrites_for(everyone_role)
+                overwrite.update(send_messages=lock.previous_value)
+                await channel.set_permissions(everyone_role, overwrite=overwrite)
             await self.bot.post_log(
                 guild,
                 msg=f"{channel.mention} was unlocked by {self.bot.user.display_name}",
@@ -62,10 +62,11 @@ class Locks(Fuzzy.Cog):
             await ctx.reply("Insufficient permissions to lock channel.")
             return
         if channel in ctx.guild.channels:
+            overwrite = channel.overwrites_for(everyone_role)
             lock = ctx.db.locks.save(
                 Lock(
                     channel.id or ctx.channel.id,
-                    channel.overwrites_for(everyone_role).read_messages,
+                    overwrite.send_messages,
                     DBUser(
                         ctx.author.id, f"{ctx.author.name}#{ctx.author.discriminator}"
                     ),
@@ -74,7 +75,8 @@ class Locks(Fuzzy.Cog):
                     datetime.utcnow() + time,
                 )
             )
-            await channel.set_permissions(everyone_role, send_messages=False)
+            overwrite.update(send_messages=False)
+            await channel.set_permissions(everyone_role, overwrite=overwrite)
         if not lock:
             try:
                 await ctx.reply("Could not find a channel with those IDs.")
@@ -106,9 +108,9 @@ class Locks(Fuzzy.Cog):
             return
         if channel in ctx.guild.channels:
             lock = ctx.db.locks.find_by_id(channel.id)
-            await channel.set_permissions(
-                everyone_role, send_messages=lock.previous_value
-            )
+            overwrite = channel.overwrites_for(everyone_role)
+            overwrite.update(send_messages=lock.previous_value)
+            await channel.set_permissions(everyone_role, overwrite=overwrite)
             ctx.db.locks.delete(lock.channel_id)
         if not lock:
             await ctx.reply("Could not find a locked channel with that ID.")

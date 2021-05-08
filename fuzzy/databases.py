@@ -669,7 +669,9 @@ class Locks(ILocks):
             return (
                 Lock(
                     lock["channel_id"],
-                    lock["previous_value"],
+                    bool(lock["previous_value"])
+                    if lock["previous_value"] is not None
+                    else None,
                     DBUser(lock["moderator_id"], lock["moderator_name"]),
                     self.db.guilds.find_by_id(lock["guild_id"]),
                     lock["reason"],
@@ -694,7 +696,9 @@ class Locks(ILocks):
                 objectified_locks.append(
                     Lock(
                         lock["channel_id"],
-                        lock["previous_value"],
+                        bool(lock["previous_value"])
+                        if lock["previous_value"] is not None
+                        else None,
                         DBUser(lock["moderator_id"], lock["moderator_name"]),
                         self.db.guilds.find_by_id(lock["guild_id"]),
                         lock["reason"],

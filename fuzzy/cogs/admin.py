@@ -159,7 +159,9 @@ class Admin(Fuzzy.Cog):
                 and not channel.permissions_synced
             ):
                 try:
-                    await channel.set_permissions(role, send_messages=False)
+                    overwrite = channel.overwrites_for(role)
+                    overwrite.update(send_messages=False)
+                    await channel.set_permissions(role, overwrite=overwrite)
                 except discord.Forbidden:
                     channel_errors.append(channel)
         category_errors = []

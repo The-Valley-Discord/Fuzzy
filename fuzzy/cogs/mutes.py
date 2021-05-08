@@ -7,7 +7,6 @@ from discord.ext import commands, tasks
 
 from fuzzy import Fuzzy
 from fuzzy.models import DBUser, Infraction, InfractionType, Mute
-
 from ..customizations import ParseableTimedelta
 
 
