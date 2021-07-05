@@ -34,6 +34,7 @@ class Warns(Fuzzy.Cog):
                     await ctx.reply(f"Could not send direct message to {who.mention}")
         else:
             await ctx.reply("You cant warn yourself.")
+            return
 
         warn_string = f"{who.mention}: Warning **ID {infraction.id}**"
         await ctx.reply(

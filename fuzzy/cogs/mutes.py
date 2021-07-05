@@ -26,7 +26,10 @@ class Mutes(Fuzzy.Cog):
             # noinspection PyTypeChecker
             mute_role: discord.Role = None
             if guild:
-                user = await guild.fetch_member(mute.user.id)
+                try:
+                    user = await guild.fetch_member(mute.user.id)
+                except discord.NotFound:
+                    pass
                 mute_role = guild.get_role(mute.infraction.guild.mute_role)
             if user and mute_role:
                 await user.remove_roles(mute_role)
@@ -37,11 +40,12 @@ class Mutes(Fuzzy.Cog):
                 except discord.Forbidden or discord.HTTPException:
                     pass
             self.bot.db.mutes.delete(mute.infraction.id)
-            await self.bot.post_log(
-                guild,
-                msg=f"{mute.user.name} mute expired.",
-                color=self.bot.Context.Color.AUTOMATIC_BLUE,
-            )
+            if user:
+                await self.bot.post_log(
+                    guild,
+                    msg=f"{mute.user.name} mute expired.",
+                    color=self.bot.Context.Color.AUTOMATIC_BLUE,
+                )
 
     @commands.command()
     @commands.has_guild_permissions(manage_messages=True)
