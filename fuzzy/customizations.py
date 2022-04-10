@@ -147,14 +147,14 @@ class Fuzzy(commands.Bot):
         self.log.setLevel(logging.INFO)
         self.db: Database = database
         self.initial_extensions = [
-            'fuzzy.cogs.admin',
-            'fuzzy.cogs.bans',
-            'fuzzy.cogs.infraction_admin',
-            'fuzzy.cogs.locks',
-            'fuzzy.cogs.logs',
-            'fuzzy.cogs.mutes',
-            'fuzzy.cogs.purge',
-            'fuzzy.cogs.warns',
+            "fuzzy.cogs.admin",
+            "fuzzy.cogs.bans",
+            "fuzzy.cogs.infraction_admin",
+            "fuzzy.cogs.locks",
+            "fuzzy.cogs.logs",
+            "fuzzy.cogs.mutes",
+            "fuzzy.cogs.purge",
+            "fuzzy.cogs.warns",
         ]
         self.session = None
         super().__init__(command_prefix=config["discord"]["prefix"], **kwargs)
