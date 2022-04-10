@@ -87,7 +87,8 @@ class Infractions(IInfractions):
         infraction = None
         try:
             infraction = self.conn.execute(
-                "SELECT * FROM infractions WHERE oid=:id", {"id": infraction_id},
+                "SELECT * FROM infractions WHERE oid=:id",
+                {"id": infraction_id},
             ).fetchone()
         except sqlite3.DatabaseError:
             pass
@@ -189,7 +190,7 @@ class Infractions(IInfractions):
 
     def find_recent_ban_by_id_time_limited(self, user_id, guild_id) -> Infraction:
         infraction = None
-        infraction_on = datetime.utcnow() - timedelta(minutes=1)
+        infraction_on = datetime.now(timezone.utc) - timedelta(minutes=1)
         try:
             infraction = self.conn.execute(
                 "SELECT * FROM infractions WHERE user_id=:user_id "
@@ -209,7 +210,7 @@ class Infractions(IInfractions):
                 DBUser(infraction["moderator_id"], infraction["moderator_name"]),
                 self.db.guilds.find_by_id(guild_id),
                 infraction["reason"],
-                infraction["infraction_on"],
+                infraction["infraction_on"].replace(tzinfo=timezone.utc),
                 InfractionType(infraction["infraction_type"]),
                 self.db.pardons.find_by_id(infraction["oid"]),
                 self.db.published_messages.find_by_id_and_type(
@@ -250,7 +251,7 @@ class Infractions(IInfractions):
                     DBUser(infraction["moderator_id"], infraction["moderator_name"]),
                     self.db.guilds.find_by_id(guild_id),
                     infraction["reason"],
-                    infraction["infraction_on"],
+                    infraction["infraction_on"].replace(tzinfo=timezone.utc),
                     InfractionType(infraction["infraction_type"]),
                     self.db.pardons.find_by_id(infraction["oid"]),
                     self.db.published_messages.find_by_id_and_type(
@@ -292,7 +293,7 @@ class Infractions(IInfractions):
                     DBUser(infraction["moderator_id"], infraction["moderator_name"]),
                     self.db.guilds.find_by_id(guild_id),
                     infraction["reason"],
-                    infraction["infraction_on"],
+                    infraction["infraction_on"].replace(tzinfo=timezone.utc),
                     InfractionType(infraction["infraction_type"]),
                     self.db.pardons.find_by_id(infraction["oid"]),
                     self.db.published_messages.find_by_id_and_type(
@@ -334,7 +335,7 @@ class Infractions(IInfractions):
                     DBUser(infraction["moderator_id"], infraction["moderator_name"]),
                     self.db.guilds.find_by_id(guild_id),
                     infraction["reason"],
-                    infraction["infraction_on"],
+                    infraction["infraction_on"].replace(tzinfo=timezone.utc),
                     InfractionType(infraction["infraction_type"]),
                     self.db.pardons.find_by_id(infraction["oid"]),
                     self.db.published_messages.find_by_id_and_type(
@@ -376,7 +377,7 @@ class Infractions(IInfractions):
                     DBUser(infraction["moderator_id"], infraction["moderator_name"]),
                     self.db.guilds.find_by_id(guild_id),
                     infraction["reason"],
-                    infraction["infraction_on"],
+                    infraction["infraction_on"].replace(tzinfo=timezone.utc),
                     InfractionType(infraction["infraction_type"]),
                     self.db.pardons.find_by_id(infraction["oid"]),
                     self.db.published_messages.find_by_id_and_type(
@@ -447,7 +448,7 @@ class Pardons(IPardons):
                 Pardon(
                     pardon["infraction_id"],
                     DBUser(pardon["moderator_id"], pardon["moderator_name"]),
-                    pardon["pardon_on"],
+                    pardon["pardon_on"].replace(tzinfo=timezone.utc),
                     pardon["reason"],
                 )
                 if pardon
@@ -509,7 +510,7 @@ class Mutes(IMutes):
             return (
                 Mute(
                     self.db.infractions.find_by_id_only(mute["infraction_id"]),
-                    mute["end_time"],
+                    mute["end_time"].replace(tzinfo=timezone.utc),
                     DBUser(mute["user_id"], mute["user_name"]),
                 )
                 if mute
@@ -521,7 +522,7 @@ class Mutes(IMutes):
         try:
             mutes = self.conn.execute(
                 "SELECT * FROM mutes WHERE DATETIME(end_time) < :time",
-                {"time": datetime.utcnow()},
+                {"time": datetime.now(timezone.utc)},
             ).fetchall()
         except sqlite3.DatabaseError:
             pass
@@ -531,7 +532,7 @@ class Mutes(IMutes):
                 objectified_mutes.append(
                     Mute(
                         self.db.infractions.find_by_id_only(mute["infraction_id"]),
-                        mute["end_time"],
+                        mute["end_time"].replace(tzinfo=timezone.utc),
                         DBUser(mute["user_id"], mute["user_name"]),
                     )
                 )
@@ -559,7 +560,7 @@ class Mutes(IMutes):
         try:
             mute = self.conn.execute(
                 "SELECT * FROM mutes WHERE DATETIME(end_time) > :time AND user_id=:user_id",
-                {"time": datetime.utcnow(), "user_id": user_id},
+                {"time": datetime.now(timezone.utc), "user_id": user_id},
             ).fetchone()
         except sqlite3.DatabaseError:
             pass
@@ -567,7 +568,7 @@ class Mutes(IMutes):
             return (
                 Mute(
                     self.db.infractions.find_by_id_only(mute["infraction_id"]),
-                    mute["end_time"],
+                    mute["end_time"].replace(tzinfo=timezone.utc),
                     DBUser(mute["user_id"], mute["user_name"]),
                 )
                 if mute
@@ -675,7 +676,7 @@ class Locks(ILocks):
                     DBUser(lock["moderator_id"], lock["moderator_name"]),
                     self.db.guilds.find_by_id(lock["guild_id"]),
                     lock["reason"],
-                    lock["end_time"],
+                    lock["end_time"].replace(tzinfo=timezone.utc),
                 )
                 if lock
                 else None
@@ -686,7 +687,7 @@ class Locks(ILocks):
         try:
             locks = self.conn.execute(
                 "SELECT * FROM locks WHERE DATETIME(end_time) < :time",
-                {"time": datetime.utcnow()},
+                {"time": datetime.now(timezone.utc)},
             ).fetchall()
         except sqlite3.DatabaseError:
             pass
@@ -702,7 +703,7 @@ class Locks(ILocks):
                         DBUser(lock["moderator_id"], lock["moderator_name"]),
                         self.db.guilds.find_by_id(lock["guild_id"]),
                         lock["reason"],
-                        lock["end_time"],
+                        lock["end_time"].replace(tzinfo=timezone.utc),
                     )
                 )
             return objectified_locks

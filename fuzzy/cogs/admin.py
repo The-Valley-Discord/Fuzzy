@@ -199,3 +199,7 @@ class Admin(Fuzzy.Cog):
             ctx.guild,
             msg=f"{ctx.author.name}#{ctx.author.discriminator} refreshed permissions on {role.name}",
         )
+
+
+async def setup(bot):
+    await bot.add_cog(Admin(bot))

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 import discord
@@ -72,7 +72,7 @@ class Locks(Fuzzy.Cog):
                     ),
                     ctx.db.guilds.find_by_id(ctx.guild.id),
                     reason,
-                    datetime.utcnow() + time,
+                    datetime.now(timezone.utc) + time,
                 )
             )
             overwrite.update(send_messages=False)
@@ -95,7 +95,9 @@ class Locks(Fuzzy.Cog):
 
     @commands.command()
     async def unlock(
-        self, ctx: Fuzzy.Context, channel: Optional[discord.TextChannel],
+        self,
+        ctx: Fuzzy.Context,
+        channel: Optional[discord.TextChannel],
     ):
         """Prevents users from being able to speak in a channel.
         channel` is the channel to lock. If left empty the current channel will be used."""
@@ -121,3 +123,7 @@ class Locks(Fuzzy.Cog):
             msg=f"{ctx.author.name}#{ctx.author.discriminator} "
             f"unlocked {channel.mention}",
         )
+
+
+async def setup(bot):
+    await bot.add_cog(Locks(bot))
