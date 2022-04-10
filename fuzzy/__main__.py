@@ -98,7 +98,7 @@ async def ping(ctx):
     embed = discord.Embed(
         title="**Ping**", description=f"Pong! {round(bot.latency * 1000)}ms"
     )
-    embed.set_author(name=f"{bot.user.name}", icon_url=bot.user.avatar.url)
+    embed.set_author(name=f"{bot.user.name}", icon_url=bot.user.display_avatar.url)
     await ctx.send(embed=embed)
 
 
