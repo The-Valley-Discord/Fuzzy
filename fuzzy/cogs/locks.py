@@ -71,7 +71,7 @@ class Locks(Fuzzy.Cog):
 
         `reason` is the reason for the mute. This is optional."""
         lock = None
-        
+
         if not channel:
             channel = ctx.channel
         # if not channel.permissions_for(ctx.author).manage_messages:
@@ -97,38 +97,46 @@ class Locks(Fuzzy.Cog):
             f"locked {channel.mention} for {time} for {reason}",
         )
 
-    async def _lock_channel(self, ctx: Fuzzy.Context, channel: discord.TextChannel, time: ParseableTimedelta, reason: str):
+    async def _lock_channel(
+        self,
+        ctx: Fuzzy.Context,
+        channel: discord.TextChannel,
+        time: ParseableTimedelta,
+        reason: str,
+    ):
         everyone_role: discord.Role = ctx.guild.get_role(ctx.guild.id)
         overwrite = channel.overwrites_for(everyone_role)
         lock = ctx.db.locks.save(
-                Lock(
-                    channel.id or ctx.channel.id,
-                    overwrite.send_messages,
-                    DBUser(
-                        ctx.author.id, f"{ctx.author.name}#{ctx.author.discriminator}"
-                    ),
-                    ctx.db.guilds.find_by_id(ctx.guild.id),
-                    reason,
-                    datetime.now(timezone.utc) + time,
-                )
+            Lock(
+                channel.id or ctx.channel.id,
+                overwrite.send_messages,
+                DBUser(ctx.author.id, f"{ctx.author.name}#{ctx.author.discriminator}"),
+                ctx.db.guilds.find_by_id(ctx.guild.id),
+                reason,
+                datetime.now(timezone.utc) + time,
             )
+        )
         overwrite.update(send_messages=False)
         await channel.set_permissions(everyone_role, overwrite=overwrite)
         return lock
 
-    def _lock_thread_channel(self, ctx: Fuzzy.Context, channel: discord.TextChannel, time: ParseableTimedelta, reason: str):
+    def _lock_thread_channel(
+        self,
+        ctx: Fuzzy.Context,
+        channel: discord.TextChannel,
+        time: ParseableTimedelta,
+        reason: str,
+    ):
 
         lock = ctx.db.thread_locks.save(
-                ThreadLock(
-                    channel.id or ctx.channel.id,
-                    DBUser(
-                        ctx.author.id, f"{ctx.author.name}#{ctx.author.discriminator}"
-                    ),
-                    ctx.db.guilds.find_by_id(ctx.guild.id),
-                    reason,
-                    datetime.now(timezone.utc) + time,
-                )
+            ThreadLock(
+                channel.id or ctx.channel.id,
+                DBUser(ctx.author.id, f"{ctx.author.name}#{ctx.author.discriminator}"),
+                ctx.db.guilds.find_by_id(ctx.guild.id),
+                reason,
+                datetime.now(timezone.utc) + time,
             )
+        )
         return lock
 
     @commands.command()
@@ -161,14 +169,16 @@ class Locks(Fuzzy.Cog):
             msg=f"{ctx.author.name}#{ctx.author.discriminator} "
             f"unlocked {channel.mention}",
         )
-    
+
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         """Deletes any messages sent in a locked thread."""
         thread: ThreadLock = self.bot.db.thread_locks.find_by_id(message.channel.id)
-        if thread and not message.channel.permissions_for(message.author).manage_messages:
+        if (
+            thread
+            and not message.channel.permissions_for(message.author).manage_messages
+        ):
             await message.delete()
-
 
 
 async def setup(bot):

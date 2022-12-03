@@ -757,6 +757,7 @@ class Locks(ILocks):
         self.conn.execute("DELETE FROM locks WHERE channel_id=:id", {"id": channel_id})
         self.conn.commit()
 
+
 class ThreadLocks(IThreadLocks):
     def __init__(self, conn: sqlite3.Connection, db: Database):
         self.conn = conn
@@ -850,7 +851,9 @@ class ThreadLocks(IThreadLocks):
         return self.find_by_id(lock.channel_id)
 
     def delete(self, channel_id: int) -> None:
-        self.conn.execute("DELETE FROM thread_locks WHERE channel_id=:id", {"id": channel_id})
+        self.conn.execute(
+            "DELETE FROM thread_locks WHERE channel_id=:id", {"id": channel_id}
+        )
         self.conn.commit()
 
 
