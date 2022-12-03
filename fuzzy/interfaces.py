@@ -114,6 +114,22 @@ class ILocks(ABC):
     def delete(self, channel_id: int) -> None:
         pass
 
+class IThreadLocks(ABC):
+    @abstractmethod
+    def find_by_id(self, channel_id: int) -> Lock:
+        pass
+
+    @abstractmethod
+    def find_expired_locks(self) -> List[Lock]:
+        pass
+
+    @abstractmethod
+    def save(self, lock: Lock) -> Lock:
+        pass
+
+    @abstractmethod
+    def delete(self, channel_id: int) -> None:
+        pass
 
 class IPublishedMessages(ABC):
     @abstractmethod

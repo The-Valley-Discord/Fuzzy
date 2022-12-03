@@ -45,6 +45,7 @@ class Database:
         self.guilds = Guilds(self.conn)
         self.locks = Locks(self.conn, self)
         self.published_messages = PublishedMessages(self.conn)
+        self.thread_locks = ThreadLocks(self.conn, self)
 
 
 class Infractions(IInfractions):
@@ -754,6 +755,102 @@ class Locks(ILocks):
 
     def delete(self, channel_id: int) -> None:
         self.conn.execute("DELETE FROM locks WHERE channel_id=:id", {"id": channel_id})
+        self.conn.commit()
+
+class ThreadLocks(IThreadLocks):
+    def __init__(self, conn: sqlite3.Connection, db: Database):
+        self.conn = conn
+        self.db = db
+
+    def find_by_id(self, channel_id: int) -> Lock:
+        lock = None
+        try:
+            lock = self.conn.execute(
+                "SELECT * FROM thread_locks WHERE channel_id=:id", {"id": channel_id}
+            ).fetchone()
+        except sqlite3.DatabaseError:
+            pass
+        finally:
+            return (
+                ThreadLock(
+                    lock["channel_id"],
+                    DBUser(lock["moderator_id"], lock["moderator_name"]),
+                    self.db.guilds.find_by_id(lock["guild_id"]),
+                    lock["reason"],
+                    lock["end_time"].replace(tzinfo=timezone.utc),
+                )
+                if lock
+                else None
+            )
+
+    def find_expired_locks(self) -> List[ThreadLock]:
+        locks = []
+        try:
+            locks = self.conn.execute(
+                "SELECT * FROM thread_locks WHERE DATETIME(end_time) < :time",
+                {"time": datetime.now(timezone.utc)},
+            ).fetchall()
+        except sqlite3.DatabaseError:
+            pass
+        finally:
+            objectified_locks = []
+            for lock in locks:
+                objectified_locks.append(
+                    ThreadLock(
+                        lock["channel_id"],
+                        DBUser(lock["moderator_id"], lock["moderator_name"]),
+                        self.db.guilds.find_by_id(lock["guild_id"]),
+                        lock["reason"],
+                        lock["end_time"].replace(tzinfo=timezone.utc),
+                    )
+                )
+            return objectified_locks
+
+    def save(self, lock: ThreadLock) -> ThreadLock:
+        retrieved_lock = self.find_by_id(lock.channel_id)
+        if retrieved_lock:
+            try:
+                self.conn.execute(
+                    "UPDATE thread_locks SET "
+                    "moderator_id=:moderator_id,"
+                    "moderator_name=:moderator_name,"
+                    "reason=:reason,"
+                    "end_time=:end_time "
+                    "WHERE channel_id=channel_id",
+                    {
+                        "moderator_id": lock.moderator.id,
+                        "moderator_name": lock.moderator.name,
+                        "reason": lock.reason,
+                        "end_time": lock.end_time,
+                        "channel_id": lock.channel_id,
+                    },
+                )
+                self.conn.commit()
+            except sqlite3.DatabaseError:
+                pass
+        else:
+            try:
+                values = (
+                    lock.channel_id,
+                    lock.moderator.id,
+                    lock.moderator.name,
+                    lock.guild.id,
+                    lock.reason,
+                    lock.end_time,
+                )
+                sql = (
+                    "INSERT INTO thread_locks (channel_id, moderator_id, moderator_name, "
+                    "guild_id, reason, end_time) "
+                    "VALUES(?,?,?,?,?,?)"
+                )
+                self.conn.execute(sql, values)
+                self.conn.commit()
+            except sqlite3.DatabaseError:
+                pass
+        return self.find_by_id(lock.channel_id)
+
+    def delete(self, channel_id: int) -> None:
+        self.conn.execute("DELETE FROM thread_locks WHERE channel_id=:id", {"id": channel_id})
         self.conn.commit()
 
 

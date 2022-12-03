@@ -114,3 +114,12 @@ class Lock(object):
     guild: GuildSettings
     reason: str
     end_time: datetime
+
+
+@dataclass()
+class ThreadLock(object):
+    channel_id: int
+    moderator: DBUser
+    guild: GuildSettings
+    reason: str
+    end_time: datetime
