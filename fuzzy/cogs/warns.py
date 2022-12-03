@@ -11,7 +11,11 @@ class Warns(Fuzzy.Cog):
     @commands.command()
     @commands.has_permissions(manage_messages=True)
     async def warn(
-        self, ctx: Fuzzy.Context, who: discord.User, *, reason: Optional[str] = "",
+        self,
+        ctx: Fuzzy.Context,
+        who: discord.User,
+        *,
+        reason: Optional[str] = "",
     ):
         """Issue a warning to a user.
         `who` the person to be warned. This can be an ID, a user mention, or
@@ -50,3 +54,7 @@ class Warns(Fuzzy.Cog):
             + f"{warn_string} ",
             color=ctx.Color.I_GUESS,
         )
+
+
+async def setup(bot):
+    await bot.add_cog(Warns(bot))

@@ -1,23 +1,22 @@
 [tool.poetry]
 name = "Fuzzy"
-version = "1.0.1"
+version = "1.0.2"
 description = "A basic moderation bot for Discord"
 authors = ["Runtime-Ali <57050083+Runtime-Ali@users.noreply.github.com>"]
 license = "AGPL-3.0"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-"discord.py" = "^1.6.0"
-
+python = "^3.10"
+"discord.py" = "^2.1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.3"
 pylint = "^2.7.4"
-black = "^20.8b1"
+black = "^21.5b1"
 
 [tool.poetry.scripts]
-fuzzy = "fuzzy.__main__:main"
+fuzzy = "Fuzzy.__main__:main"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.2.2"]
 build-backend = "poetry.core.masonry.api"

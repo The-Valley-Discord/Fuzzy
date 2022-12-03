@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 import discord
@@ -33,11 +33,11 @@ class GuildSettings(object):
 
     def infraction_expired_time(self) -> datetime:
         if self.duration_type.value == DurationType.DAYS.value:
-            return datetime.utcnow() - timedelta(days=self.duration)
+            return datetime.now(timezone.utc) - timedelta(days=self.duration)
         if self.duration_type.value == DurationType.MONTHS.value:
-            return datetime.utcnow() - timedelta(days=(self.duration * 30))
+            return datetime.now(timezone.utc) - timedelta(days=(self.duration * 30))
         if self.duration_type.value == DurationType.YEARS.value:
-            return datetime.utcnow() - timedelta(days=(self.duration * 365))
+            return datetime.now(timezone.utc) - timedelta(days=(self.duration * 365))
 
 
 @dataclass()
@@ -76,7 +76,11 @@ class Infraction(object):
 
     @classmethod
     def create(
-        cls, ctx, who: discord.User, reason: str, infraction_type: InfractionType,
+        cls,
+        ctx,
+        who: discord.User,
+        reason: str,
+        infraction_type: InfractionType,
     ):
         """Creates a new Infraction ready to be stored in DB.
         This will not have id pardon or published_ban attributes. Use normal constructor if those are required"""
@@ -87,7 +91,7 @@ class Infraction(object):
             DBUser(ctx.author.id, f"{ctx.author.name}#{ctx.author.discriminator}"),
             ctx.db.guilds.find_by_id(ctx.guild.id),
             reason,
-            datetime.utcnow(),
+            datetime.now(timezone.utc),
             infraction_type,
             None,
             None,
@@ -106,6 +110,15 @@ class Mute(object):
 class Lock(object):
     channel_id: int
     previous_value: bool
+    moderator: DBUser
+    guild: GuildSettings
+    reason: str
+    end_time: datetime
+
+
+@dataclass()
+class ThreadLock(object):
+    channel_id: int
     moderator: DBUser
     guild: GuildSettings
     reason: str

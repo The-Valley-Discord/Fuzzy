@@ -1,5 +1,5 @@
 import typing
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
 import discord
@@ -91,7 +91,7 @@ class Mutes(Fuzzy.Cog):
                 infraction = ctx.db.infractions.save(infraction)
 
                 if infraction.id:
-                    end_time = datetime.utcnow() + time
+                    end_time = datetime.now(timezone.utc) + time
                     mute = Mute(
                         infraction,
                         end_time,
@@ -192,8 +192,12 @@ class Mutes(Fuzzy.Cog):
         active_mute = self.bot.db.mutes.find_active_mute(member.id, member.guild.id)
         if active_mute:
 
-            mute_role: discord.Role = member.guild.fetch_role(
+            mute_role: discord.Role = member.guild.get_role(
                 self.bot.db.guilds.find_by_id(member.guild.id).mute_role
             )
             if mute_role:
                 await member.add_roles(mute_role)
+
+
+async def setup(bot):
+    await bot.add_cog(Mutes(bot))

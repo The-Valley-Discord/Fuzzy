@@ -166,3 +166,7 @@ class Logs(Fuzzy.Cog):
             if not incoming_list:
                 list_to_return.append(msg)
         return list_to_return
+
+
+async def setup(bot):
+    await bot.add_cog(Logs(bot))

@@ -11,7 +11,11 @@ class InfractionAdmin(Fuzzy.Cog):
     @commands.command()
     @commands.has_guild_permissions(manage_messages=True)
     async def pardon(
-        self, ctx: Fuzzy.Context, infraction_id: int, *, reason: Optional[str],
+        self,
+        ctx: Fuzzy.Context,
+        infraction_id: int,
+        *,
+        reason: Optional[str],
     ):
         """Pardon a user's infraction. This will leave the infraction in the logs but will mark it as pardoned.
         This command cannot pardon bans as those will automatically be pardoned when a user is unbanned.
@@ -48,7 +52,7 @@ class InfractionAdmin(Fuzzy.Cog):
             pardon = Pardon(
                 infraction.id,
                 DBUser(ctx.author.id, f"{ctx.author.name}#{ctx.author.discriminator}"),
-                datetime.utcnow(),
+                datetime.now(timezone.utc),
                 reason,
             )
         pardon = ctx.db.pardons.save(pardon)
@@ -136,14 +140,12 @@ class InfractionAdmin(Fuzzy.Cog):
             channel: discord.TextChannel = ctx.guild.get_channel(
                 ctx.db.guilds.find_by_id(ctx.guild.id).public_log
             )
-            # noinspection PyUnresolvedReferences
-            message: discord.Message = await channel.fetch_message(
-                infraction.published_ban.message_id
-            )
-            if message:
+            try:
+                message: discord.Message = await channel.fetch_message(
+                    infraction.published_ban.message_id
+                )
                 await message.edit(embed=InfractionAdmin.create_ban_embed(infraction))
-            else:
-                # noinspection PyUnresolvedReferences
+            except discord.NotFound or discord.Forbidden:
                 ctx.db.published_messages.delete_with_type(
                     infraction.id, infraction.published_ban.publish_type
                 )
@@ -356,3 +358,7 @@ class InfractionAdmin(Fuzzy.Cog):
             f"**User:** {infraction.user.name} ({infraction.user.id})\n"
             f"**Reason:** {infraction.pardon.reason}",
         )
+
+
+async def setup(bot):
+    await bot.add_cog(InfractionAdmin(bot))

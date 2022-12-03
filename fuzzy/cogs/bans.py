@@ -1,6 +1,6 @@
 import asyncio
 import typing
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import discord
@@ -25,7 +25,7 @@ class Bans(Fuzzy.Cog):
                 async for entry in guild.audit_logs(
                     limit=10,
                     oldest_first=False,
-                    after=(datetime.utcnow() - timedelta(minutes=1)),
+                    after=(discord.utils.utcnow() - timedelta(minutes=1)),
                     action=discord.AuditLogAction.ban,
                 ):
                     if entry.target.id == user.id:
@@ -45,7 +45,7 @@ class Bans(Fuzzy.Cog):
                                 mod,
                                 self.bot.db.guilds.find_by_id(guild.id),
                                 f"{entry.reason}",
-                                datetime.utcnow(),
+                                datetime.now(timezone.utc),
                                 InfractionType.BAN,
                                 None,
                                 None,
@@ -62,7 +62,7 @@ class Bans(Fuzzy.Cog):
                         DBUser(0, "Unknown#????"),
                         self.bot.db.guilds.find_by_id(guild.id),
                         None,
-                        datetime.utcnow(),
+                        datetime.now(timezone.utc),
                         InfractionType.BAN,
                         None,
                         None,
@@ -191,7 +191,9 @@ class Bans(Fuzzy.Cog):
         if unbanned_users:
             unban_string = "\n".join(unbanned_users)
             await ctx.reply(
-                title="Unbanned", msg=f"{unban_string}", color=ctx.Color.GOOD,
+                title="Unbanned",
+                msg=f"{unban_string}",
+                color=ctx.Color.GOOD,
             )
 
     async def check_if_can_ban(
@@ -208,3 +210,7 @@ class Bans(Fuzzy.Cog):
             > guild.roles.index(member.roles[-1])
             and guild.owner_id != member.id
         )
+
+
+async def setup(bot):
+    await bot.add_cog(Bans(bot))

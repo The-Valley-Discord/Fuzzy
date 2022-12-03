@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import logging
 import re
@@ -5,7 +6,7 @@ import traceback
 from configparser import ConfigParser
 from importlib import metadata
 from string import Template
-from typing import Optional
+from typing import Optional, List
 
 import discord
 from discord.ext import commands
@@ -30,6 +31,7 @@ for source in config["log"]["suppress"].split(","):
 
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
 
 # noinspection PyTypeChecker
 database: Database = Database(config)
@@ -42,15 +44,6 @@ bot = Fuzzy(
     help_command=None,
     intents=intents,
 )
-for cog in [
-    cogs.Warns,
-    cogs.InfractionAdmin,
-    cogs.Bans,
-    cogs.Logs,
-    cogs.Purges,
-    cogs.Admin,
-]:
-    bot.add_cog(cog(bot))
 
 
 def process_docstrings(text) -> str:
@@ -58,7 +51,11 @@ def process_docstrings(text) -> str:
     return re.sub(
         r"(.+)\n *",
         r"\1 ",
-        Template(text).safe_substitute({"pfx": bot.config["discord"]["prefix"],}),
+        Template(text).safe_substitute(
+            {
+                "pfx": bot.config["discord"]["prefix"],
+            }
+        ),
     )
 
 
@@ -72,8 +69,6 @@ async def on_ready():
 
     global ONCE_LOCK  # pylint: disable=global-statement
     if not ONCE_LOCK:
-        bot.add_cog(cogs.Mutes(bot))
-        bot.add_cog(cogs.Locks(bot))
         bot.owner_id = (await bot.application_info()).owner.id
 
         # inserting runtime data into help
@@ -86,7 +81,14 @@ async def on_ready():
             if not guild_settings:
                 # noinspection PyTypeChecker
                 bot.db.guilds.save(
-                    GuildSettings(guild.id, None, None, DurationType.YEARS, 30, None,)
+                    GuildSettings(
+                        guild.id,
+                        None,
+                        None,
+                        DurationType.YEARS,
+                        30,
+                        None,
+                    )
                 )
 
 
@@ -96,7 +98,7 @@ async def ping(ctx):
     embed = discord.Embed(
         title="**Ping**", description=f"Pong! {round(bot.latency * 1000)}ms"
     )
-    embed.set_author(name=f"{bot.user.name}", icon_url=bot.user.avatar_url)
+    embed.set_author(name=f"{bot.user.name}", icon_url=bot.user.display_avatar.url)
     await ctx.send(embed=embed)
 
 
@@ -106,7 +108,14 @@ async def on_guild_join(guild: discord.Guild):
     if not guild_settings:
         # noinspection PyTypeChecker
         bot.db.guilds.save(
-            GuildSettings(guild.id, None, None, DurationType.YEARS, 30, None,)
+            GuildSettings(
+                guild.id,
+                None,
+                None,
+                DurationType.YEARS,
+                30,
+                None,
+            )
         )
 
 
@@ -141,21 +150,20 @@ async def _help(ctx: Fuzzy.Context, *, subject: Optional[str]):
 
         all_commands = ""
         standalone_commands = ""
-        previous_group = None
+        group_hierarchy: List[commands.GroupMixin] = []
         for cmd in sorted(ctx.bot.walk_commands(), key=lambda x: x.qualified_name):
             if cmd.__class__ == commands.Command:
                 if not cmd.parent:
                     standalone_commands += (
                         f"`{bot.command_prefix}{cmd.qualified_name}` "
                     )
+                    if group_hierarchy:
+                        group_hierarchy.clear()
                 else:
-                    if previous_group != cmd.parent:
-                        all_commands += (
-                            f"\n**`{bot.command_prefix}{cmd.parent.name}`** "
-                        )
+                    if len(group_hierarchy) != len(cmd.parents):
+                        all_commands += f"\n**`{bot.command_prefix}{' '.join([cmd.name for cmd in reversed(cmd.parents)])}`** "
                     all_commands += f"`{cmd.name}` "
-
-                previous_group = cmd.parent
+                group_hierarchy = cmd.parents
         embed.add_field(
             name="All Commands", value=standalone_commands + "\n" + all_commands
         )
@@ -209,7 +217,9 @@ async def on_command_error(ctx: Fuzzy.Context, error):
         return
     elif isinstance(error, commands.UserInputError):
         await ctx.reply(
-            str(error), title=PleaseRestate.TEXT, color=ctx.Color.BAD,
+            str(error),
+            title=PleaseRestate.TEXT,
+            color=ctx.Color.BAD,
         )
         return
     elif isinstance(error, commands.CommandNotFound):
@@ -222,7 +232,8 @@ async def on_command_error(ctx: Fuzzy.Context, error):
             (error_int.bit_length() + 7) // 8, byteorder="little"
         )
         error_id = str(
-            base64.urlsafe_b64encode(error_bytes), encoding="utf-8",
+            base64.urlsafe_b64encode(error_bytes),
+            encoding="utf-8",
         ).replace("=", "")
 
         ctx.log.error(
@@ -252,9 +263,10 @@ async def on_command_error(ctx: Fuzzy.Context, error):
         )
 
 
-def main():  # pylint: disable=missing-function-docstring
-    bot.run(config["discord"]["token"])
+async def main():  # pylint: disable=missing-function-docstring
+    async with bot:
+        await bot.start(config["discord"]["token"])
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

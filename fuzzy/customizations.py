@@ -7,6 +7,7 @@ from copy import copy
 from datetime import datetime, timedelta, timezone
 from typing import Union
 
+import aiohttp
 import discord
 from discord import Activity, ActivityType
 from discord.ext import commands
@@ -68,7 +69,7 @@ class Fuzzy(commands.Bot):
         async def reply(
             self,
             msg: str = None,
-            title: str = discord.Embed.Empty,
+            title: str = None,
             subtitle: str = None,
             color: Color = Color.GOOD,
             embed: discord.Embed = None,
@@ -77,7 +78,7 @@ class Fuzzy(commands.Bot):
             """Helper for sending embedded replies"""
             if not embed:
                 if not subtitle:
-                    subtitle = discord.Embed.Empty
+                    subtitle = None
 
                 lines = str(msg).split("\n")
                 buf = ""
@@ -142,11 +143,30 @@ class Fuzzy(commands.Bot):
 
     def __init__(self, config, database: Database, **kwargs):
         self.config = config
-
         self.log = logging.getLogger("Fuzzy")
         self.log.setLevel(logging.INFO)
         self.db: Database = database
+        self.initial_extensions = [
+            "fuzzy.cogs.admin",
+            "fuzzy.cogs.bans",
+            "fuzzy.cogs.infraction_admin",
+            "fuzzy.cogs.locks",
+            "fuzzy.cogs.logs",
+            "fuzzy.cogs.mutes",
+            "fuzzy.cogs.purge",
+            "fuzzy.cogs.warns",
+        ]
+        self.session = None
         super().__init__(command_prefix=config["discord"]["prefix"], **kwargs)
+
+    async def setup_hook(self):
+        self.session = aiohttp.ClientSession()
+        for ext in self.initial_extensions:
+            await self.load_extension(ext)
+
+    async def close(self):
+        await super().close()
+        await self.session.close()
 
     async def get_context(self, message, *, cls=Context):
         return await super().get_context(message, cls=cls)
@@ -157,7 +177,10 @@ class Fuzzy(commands.Bot):
         return random.choice(
             [
                 Activity(type=ActivityType.watching, name="and eating donuts."),
-                Activity(type=ActivityType.listening, name="to those with power.",),
+                Activity(
+                    type=ActivityType.listening,
+                    name="to those with power.",
+                ),
             ]
         )
 
@@ -165,7 +188,7 @@ class Fuzzy(commands.Bot):
     async def direct_message(
         to: typing.Union[discord.Member, discord.User],
         msg: str = None,
-        title: str = discord.Embed.Empty,
+        title: str = None,
         subtitle: str = None,
         color: Context.Color = Context.Color.GOOD,
         embed: discord.Embed = None,
@@ -176,7 +199,7 @@ class Fuzzy(commands.Bot):
             return None
         if not embed:
             if not subtitle:
-                subtitle = discord.Embed.Empty
+                subtitle = None
 
             lines = str(msg).split("\n")
             buf = ""
